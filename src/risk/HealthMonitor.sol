@@ -101,9 +101,10 @@ contract HealthMonitor {
         QuartzTypes.PriceData memory price = oracleRouter.getPrice(config.oracleId);
         for (uint256 i = 0; i < traders.length; i++) {
             QuartzTypes.Position memory position = positionBook.position(traders[i], marketId);
+            QuartzTypes.Position memory adjusted = _fundingAdjusted(marketId, position);
             QuartzTypes.RiskSnapshot memory risk =
-                riskEngine.previewRisk(marketId, position, price.priceX18);
-            bands[i] = classify(position, risk);
+                riskEngine.previewRisk(marketId, adjusted, price.priceX18);
+            bands[i] = classify(adjusted, risk);
         }
     }
 
@@ -112,8 +113,26 @@ contract HealthMonitor {
         QuartzTypes.PriceData memory price = oracleRouter.getPrice(config.oracleId);
         QuartzTypes.Position memory position = positionBook.position(trader, marketId);
         if (!position.exists || position.size == 0) return false;
+        position = _fundingAdjusted(marketId, position);
         QuartzTypes.RiskSnapshot memory risk =
             riskEngine.previewRisk(marketId, position, price.priceX18);
         return risk.liquidatable || !risk.initialMarginSatisfied;
+    }
+
+    function _fundingAdjusted(uint256 marketId, QuartzTypes.Position memory position)
+        internal
+        view
+        returns (QuartzTypes.Position memory)
+    {
+        QuartzTypes.FundingState memory funding = fundingEngine.fundingState(marketId);
+        QuartzTypes.FundingPreview memory preview = FundingMath.preview(
+            position.size,
+            funding.cumulativeFundingIndexX18,
+            position.lastFundingIndexX18,
+            funding.lastUpdated
+        );
+        AccountMath.FundingApplication memory application =
+            AccountMath.applyFunding(position, preview.payment);
+        return application.positionAfter;
     }
 }

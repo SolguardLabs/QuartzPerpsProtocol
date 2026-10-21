@@ -1,6 +1,6 @@
 # Quartz Perps Protocol
 
-![banner](./assets/banner.png)
+![Identidad visual de QuartzPerpsProtocol](./assets/banner.png)
 
 QuartzPerpsProtocol es una implementación on-chain de mercados perpetuos con
 margen aislado, posiciones marcadas por oráculo, índices de funding, checks de
@@ -52,15 +52,14 @@ invariantes esperadas.
 ## Requisitos
 
 - Foundry 1.7.1 o superior.
-- PowerShell en Windows para scripts `.ps1`.
-- Bash para scripts `.sh` en CI Unix-like.
+- Bash para `scripts/ci.sh`, o Foundry directamente desde PowerShell.
 
 ## Uso
 
-Instalar dependencias si es necesario:
+Inicializar la dependencia de pruebas fijada como submódulo:
 
 ```bash
-forge install foundry-rs/forge-std --no-commit
+git submodule update --init --recursive
 ```
 
 Build:
@@ -81,11 +80,8 @@ CI local:
 ./scripts/ci.sh
 ```
 
-Windows:
-
-```powershell
-.\scripts\ci.ps1
-```
+En Windows, ejecute `.\scripts\ci.ps1` desde PowerShell; el script aplica
+el mismo formato, build y dos perfiles de pruebas.
 
 ## Estructura
 
@@ -107,3 +103,35 @@ test/
   mocks/        token ERC20 de pruebas
   *.t.sol       pruebas Forge de integración
 ```
+
+## Modelo de riesgo
+
+```mermaid
+flowchart LR
+    O[Oráculo fresco] --> R[RiskEngine]
+    F[Índice de funding] --> P[Posición aislada]
+    P --> R
+    R --> I[Margen inicial]
+    R --> M[Margen de mantenimiento]
+    M --> L[Liquidación]
+    L --> S[InsuranceFund]
+    P --> B[PositionBook y exposición]
+```
+
+El valor nocional de una posición es `abs(size) × precio / 1e18`. El margen
+inicial se deriva del apalancamiento máximo del mercado; el mantenimiento usa
+su ratio específico. El equity incorpora margen y PnL no realizado. El índice
+de funding acumula pagos entre checkpoints de posición; `QuartzLens` ofrece
+vistas de posición y mercado, y `HealthMonitor` clasifica cuentas para los
+operadores.
+
+Ejemplo: una posición long de 2 ETH a 2.000 qUSD/ETH tiene nocional de
+4.000 qUSD. Con apalancamiento máximo de 10×, requiere 400 qUSD de margen
+inicial; con maintenance de 6,25 %, el umbral de mantenimiento es 250 qUSD,
+antes de PnL, funding y costes aplicables.
+
+La [arquitectura](docs/arquitectura.md), el [modelo económico](docs/modelo-economico.md),
+la [operación](docs/operacion.md) y los [controles](docs/seguridad-operativa.md)
+detallan fórmulas, recorridos y límites. Los contratos son una implementación
+de referencia sin despliegue asociado a este repositorio; cada integración
+requiere configuración, auditoría y operación independientes.

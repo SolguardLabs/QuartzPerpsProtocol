@@ -3,9 +3,9 @@ set -euo pipefail
 
 forge fmt --check
 forge build --sizes
-forge test
+bash scripts/tests.sh
 
 previous_profile="${FOUNDRY_PROFILE:-}"
 export FOUNDRY_PROFILE=ci
-forge test
+bash scripts/tests.sh
 export FOUNDRY_PROFILE="$previous_profile"

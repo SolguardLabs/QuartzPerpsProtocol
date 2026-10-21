@@ -12,7 +12,6 @@ optimizer_runs = 300
 via_ir = true
 bytecode_hash = "none"
 cbor_metadata = false
-fs_permissions = [{ access = "read-write", path = "./" }]
 invariant = { runs = 64, depth = 64, fail_on_revert = true }
 
 [profile.ci]

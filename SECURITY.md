@@ -3,6 +3,17 @@
 Quartz Perps Protocol protege posiciones de margen aislado, collateral de
 settlement, funding acumulado, límites de riesgo y liquidaciones.
 
+```mermaid
+flowchart TD
+    T[Solicitud del trader] --> A[Rol y pausa]
+    A --> O[Oráculo y vigencia]
+    O --> E[Exposición y skew]
+    E --> R[Equity y umbrales]
+    R --> P[PositionBook]
+    P --> V[CollateralVault]
+    P --> I[InsuranceFund]
+```
+
 ## Alcance
 
 El alcance de revisión cubre contratos Solidity en `src/`, el script de
@@ -56,3 +67,9 @@ Un reporte debe incluir:
 - tests recomendados.
 
 No incluyas claves privadas, credenciales ni datos de terceros.
+
+Para hallazgos de seguridad, utilice [GitHub Security Advisories](../../security/advisories/new)
+en lugar de un issue público. Incluya commit, precondiciones, impacto económico
+y una reproducción mínima sobre un entorno controlado. Las métricas de salud
+y los snapshots son ayudas operativas; no sustituyen la validación de una
+transacción ni una revisión independiente del sistema completo.

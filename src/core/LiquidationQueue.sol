@@ -79,35 +79,35 @@ contract LiquidationQueue {
         }
 
         id = candidateId(trader, marketId);
-        Candidate storage candidate = _candidates[id];
-        if (!candidate.active && candidate.queuedAt == 0) _candidateIds.push(id);
+        Candidate storage entry = _candidates[id];
+        if (!entry.active && entry.queuedAt == 0) _candidateIds.push(id);
 
-        candidate.trader = trader;
-        candidate.marketId = marketId;
-        candidate.observedHealthFactorX18 = snapshot.healthFactorX18;
-        candidate.queuedAt = candidate.queuedAt == 0 ? uint48(block.timestamp) : candidate.queuedAt;
-        candidate.lastRefresh = uint48(block.timestamp);
-        candidate.active = true;
+        entry.trader = trader;
+        entry.marketId = marketId;
+        entry.observedHealthFactorX18 = snapshot.healthFactorX18;
+        entry.queuedAt = entry.queuedAt == 0 ? uint48(block.timestamp) : entry.queuedAt;
+        entry.lastRefresh = uint48(block.timestamp);
+        entry.active = true;
 
         emit CandidateQueued(id, trader, marketId, snapshot.healthFactorX18);
     }
 
     function refresh(bytes32 id) external onlyKeeper returns (bool active) {
-        Candidate storage candidate = _candidates[id];
-        if (candidate.trader == address(0)) revert QuartzErrors.PositionNotFound(address(0), 0);
-        QuartzTypes.RiskSnapshot memory snapshot = _snapshot(candidate.trader, candidate.marketId);
-        candidate.observedHealthFactorX18 = snapshot.healthFactorX18;
-        candidate.lastRefresh = uint48(block.timestamp);
-        candidate.active = snapshot.liquidatable;
-        emit CandidateRefreshed(id, snapshot.healthFactorX18, candidate.active);
-        return candidate.active;
+        Candidate storage entry = _candidates[id];
+        if (entry.trader == address(0)) revert QuartzErrors.PositionNotFound(address(0), 0);
+        QuartzTypes.RiskSnapshot memory snapshot = _snapshot(entry.trader, entry.marketId);
+        entry.observedHealthFactorX18 = snapshot.healthFactorX18;
+        entry.lastRefresh = uint48(block.timestamp);
+        entry.active = snapshot.liquidatable;
+        emit CandidateRefreshed(id, snapshot.healthFactorX18, entry.active);
+        return entry.active;
     }
 
     function clear(bytes32 id) external onlyManager {
-        Candidate storage candidate = _candidates[id];
-        if (!candidate.active) return;
-        candidate.active = false;
-        candidate.lastRefresh = uint48(block.timestamp);
+        Candidate storage entry = _candidates[id];
+        if (!entry.active) return;
+        entry.active = false;
+        entry.lastRefresh = uint48(block.timestamp);
         emit CandidateCleared(id, msg.sender);
     }
 
