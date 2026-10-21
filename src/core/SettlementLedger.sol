@@ -73,7 +73,7 @@ contract SettlementLedger {
         if (marketId == 0) revert QuartzErrors.UnknownMarket(marketId);
 
         id = nextReceiptId++;
-        SettlementReceipt memory receipt = SettlementReceipt({
+        SettlementReceipt memory entry = SettlementReceipt({
             id: id,
             kind: kind,
             trader: trader,
@@ -84,7 +84,7 @@ contract SettlementLedger {
             timestamp: uint48(block.timestamp),
             refId: refId
         });
-        _receipts[id] = receipt;
+        _receipts[id] = entry;
         _receiptsByTrader[trader].push(id);
         _receiptsByMarket[marketId].push(id);
 

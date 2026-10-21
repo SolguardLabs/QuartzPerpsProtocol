@@ -14,9 +14,10 @@
       "problemMatcher": []
     },
     {
-      "label": "local ci",
+      "label": "Quartz CI",
       "type": "shell",
-      "command": "powershell -ExecutionPolicy Bypass -File scripts/ci.ps1",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/ci.ps1",
+      "group": "test",
       "problemMatcher": []
     }
   ]
